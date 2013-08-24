@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.Button;
 
 public class MainActivity extends Activity {
 
@@ -31,10 +32,16 @@ public class MainActivity extends Activity {
 	}
 
 	public void onClick(View view) {
-		if (isOn)
-			photoHelper.onPause();
-		else
-			photoHelper.onStart();
+
+		Button btn = (Button) findViewById(R.id.btnStopStart);
+
+		if (isOn) {
+			photoHelper.doStop();
+			btn.setText("Start");
+		} else {
+			photoHelper.doStart();
+			btn.setText("Stop");
+		}
 
 		isOn = !isOn;
 	}

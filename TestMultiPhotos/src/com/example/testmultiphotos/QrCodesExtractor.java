@@ -1,4 +1,4 @@
-package test.lecture.qr.code;
+package com.example.testmultiphotos;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,20 +17,17 @@ import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.multi.MultipleBarcodeReader;
 import com.google.zxing.multi.qrcode.QRCodeMultiReader;
 
-public class MainTestEntryPoint {
+public class QrCodesExtractor {
 
-	public static void main(String[] args) throws Exception {
+	public static ArrayList<String> extract(File dir) throws Exception {
 
-		File dir = new File("./img/yum");
 		ArrayList<String> arrayList = new ArrayList<String>();
 
 		for (File file : dir.listFiles()) {
 			extractQRCodes(file, arrayList);
 		}
 
-		for (String qr : arrayList) {
-			System.out.println(qr);
-		}
+		return arrayList;
 	}
 
 	private static void extractQRCodes(File file, ArrayList<String> arrayList) throws IOException, NotFoundException {

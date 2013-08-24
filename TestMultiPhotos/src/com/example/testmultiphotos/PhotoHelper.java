@@ -2,11 +2,14 @@ package com.example.testmultiphotos;
 
 import static android.widget.Toast.LENGTH_LONG;
 import static com.example.testmultiphotos.Constantes.LOG_TAG;
+import static com.example.testmultiphotos.Constantes.PICTURE_FILE_NAME_PREFIXE;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
@@ -25,9 +28,12 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 	private Camera camera;
 	private boolean isRecording = false;
 	private SurfaceHolder holder;
+	private File workingDirectory;
 
 	public PhotoHelper(Context context, SurfaceView surfaceView) {
 		this.context = context;
+		workingDirectory = new File(Environment.getExternalStorageDirectory(), "testQrScan");
+
 		int numberOfCameras = Camera.getNumberOfCameras();
 
 		if (numberOfCameras < 1) {
@@ -41,6 +47,7 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 		parameters.setPreviewFormat(ImageFormat.YV12);
 		parameters.setPreviewSize(800, 480);
 		parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+		// parameters.setRotation(Configuration.ORIENTATION_PORTRAIT);
 
 		camera.setParameters(parameters);
 
@@ -52,19 +59,35 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 
 	}
 
-	public void onPause() {
+	public void doStop() {
 		if (camera != null) {
-			camera.stopPreview();
 			isRecording = false;
+			onPause();
 			Toast.makeText(context, "Fin prise de vue", Toast.LENGTH_SHORT).show();
+
+			try {
+				ArrayList<String> qrCodes = QrCodesExtractor.extract(workingDirectory);
+
+				StringBuffer sb = new StringBuffer();
+
+				for (String qr : qrCodes) {
+					sb.append(qr).append("\n");
+				}
+
+				Toast.makeText(context, sb.toString(), Toast.LENGTH_LONG).show();
+
+			} catch (Exception e) {
+				Log.e(LOG_TAG, e.getMessage());
+			}
 		}
 	}
 
-	public void onStart() {
+	public void doStart() {
 		if (camera != null) {
 			Toast.makeText(context, "Debut prise de vue", Toast.LENGTH_SHORT).show();
-			camera.startPreview();
+			cleanWorkingDirectory();
 			isRecording = true;
+			onStart();
 		}
 	}
 
@@ -76,9 +99,7 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 
 	private void createPicture(byte[] data) {
 
-		File picFileDir = new File(Environment.getExternalStorageDirectory(), "testQrScan");
-
-		if (!picFileDir.exists() && !picFileDir.mkdirs()) {
+		if (!workingDirectory.exists() && !workingDirectory.mkdirs()) {
 			Log.d(LOG_TAG, "Can't create directory to save image.");
 			Toast.makeText(context, "Can't create directory to save image.", Toast.LENGTH_LONG).show();
 			return;
@@ -86,9 +107,10 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyymmddhhmmss", Locale.getDefault());
 		String date = dateFormat.format(new Date());
-		String photoFile = "Picture_" + date + ".jpg";
 
-		File pictureFile = new File(picFileDir, photoFile);
+		String photoFile = PICTURE_FILE_NAME_PREFIXE + date + ".jpg";
+
+		File pictureFile = new File(workingDirectory, photoFile);
 
 		try {
 			FileOutputStream fos = new FileOutputStream(pictureFile);
@@ -102,18 +124,27 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-		if (camera != null) {
-			try {
-				camera.setPreviewDisplay(holder);
-				camera.startPreview();
-			} catch (IOException e) {
-				Log.e(LOG_TAG, e.getMessage());
-			}
-		}
+		onStart();
 	}
 
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
+		onStart();
+	}
+
+	@Override
+	public void surfaceDestroyed(SurfaceHolder holder) {
+		onPause();
+	}
+
+	public void onPause() {
+		if (camera != null) {
+			camera.stopPreview();
+			 camera.release();
+		}
+	}
+
+	public void onStart() {
 		if (camera != null) {
 			try {
 				camera.setPreviewDisplay(holder);
@@ -124,11 +155,14 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 		}
 	}
 
-	@Override
-	public void surfaceDestroyed(SurfaceHolder holder) {
-		if (camera != null) {
-			camera.stopPreview();
-			camera.release();
+	private void cleanWorkingDirectory() {
+		for (File fichier : workingDirectory.listFiles(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String filename) {
+				return filename.startsWith(PICTURE_FILE_NAME_PREFIXE);
+			}
+		})) {
+			fichier.delete();
 		}
 	}
 
