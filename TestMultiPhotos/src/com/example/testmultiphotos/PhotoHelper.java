@@ -16,6 +16,7 @@ import java.util.Locale;
 import android.content.Context;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
+import android.hardware.Camera.AutoFocusCallback;
 import android.os.Environment;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -47,13 +48,13 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 		parameters.setPreviewFormat(ImageFormat.YV12);
 		parameters.setPreviewSize(800, 480);
 		parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-		// parameters.setRotation(Configuration.ORIENTATION_PORTRAIT);
 
 		camera.setParameters(parameters);
 
 		holder = surfaceView.getHolder();
 		holder.addCallback(this);
 
+		camera.setDisplayOrientation(90);
 		camera.setPreviewCallback(this);
 		camera.startPreview();
 
@@ -84,10 +85,15 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 
 	public void doStart() {
 		if (camera != null) {
-			Toast.makeText(context, "Debut prise de vue", Toast.LENGTH_SHORT).show();
-			cleanWorkingDirectory();
-			isRecording = true;
-			onStart();
+			camera.autoFocus(new AutoFocusCallback() {
+				@Override
+				public void onAutoFocus(boolean success, Camera camera) {
+					Toast.makeText(context, "Debut prise de vue", Toast.LENGTH_SHORT).show();
+					cleanWorkingDirectory();
+					isRecording = true;
+					onStart();
+				}
+			});
 		}
 	}
 
@@ -140,7 +146,7 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 	public void onPause() {
 		if (camera != null) {
 			camera.stopPreview();
-			 camera.release();
+			camera.release();
 		}
 	}
 
