@@ -41,14 +41,13 @@ public class QrCodesExtractor {
 		BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
 		MultipleBarcodeReader reader = new QRCodeMultiReader();
 
-		arrayList.add("----------" + file.getName() + "----------");
 		try {
 			Result[] retours = reader.decodeMultiple(bitmap);
 			for (Result retour : retours) {
 				arrayList.add(retour.getText());
 			}
 		} catch (NotFoundException e) {
-			arrayList.add("Pas de QR code");
+			// rien
 		} finally {
 			IOUtils.closeQuietly(output);
 		}

@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
-import android.content.Context;
+import android.app.Activity;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.AutoFocusCallback;
@@ -25,22 +25,39 @@ import android.widget.Toast;
 
 public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callback {
 
-	private Context context;
+	private Activity activity;
 	private Camera camera;
 	private boolean isRecording = false;
 	private SurfaceHolder holder;
 	private File workingDirectory;
+	private SurfaceView surfaceView;
 
-	public PhotoHelper(Context context, SurfaceView surfaceView) {
-		this.context = context;
-		workingDirectory = new File(Environment.getExternalStorageDirectory(), "testQrScan");
+	public PhotoHelper(Activity context, SurfaceView surfaceView) {
+		this.activity = context;
+		this.surfaceView = surfaceView;
+	}
+
+	public boolean checkPreconditions() {
 
 		int numberOfCameras = Camera.getNumberOfCameras();
 
 		if (numberOfCameras < 1) {
-			Toast.makeText(context, "Vous n\'avez pas de camera", LENGTH_LONG).show();
+			Toast.makeText(activity, "Vous n\'avez pas de camera", LENGTH_LONG).show();
+			return false;
 		}
 
+		workingDirectory = new File(Environment.getExternalStorageDirectory(), "testQrScan");
+
+		if (!workingDirectory.exists() && !workingDirectory.mkdirs()) {
+			Log.d(LOG_TAG, "Can't create directory to save image.");
+			Toast.makeText(activity, "Can't create directory to save image.", Toast.LENGTH_LONG).show();
+			return false;
+		}
+
+		return true;
+	}
+
+	public void resume() {
 		camera = Camera.open();
 
 		Camera.Parameters parameters = camera.getParameters();
@@ -57,29 +74,14 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 		camera.setDisplayOrientation(90);
 		camera.setPreviewCallback(this);
 		camera.startPreview();
-
 	}
 
 	public void doStop() {
+		isRecording = false;
+
 		if (camera != null) {
-			isRecording = false;
-			onPause();
-			Toast.makeText(context, "Fin prise de vue", Toast.LENGTH_SHORT).show();
-
-			try {
-				ArrayList<String> qrCodes = QrCodesExtractor.extract(workingDirectory);
-
-				StringBuffer sb = new StringBuffer();
-
-				for (String qr : qrCodes) {
-					sb.append(qr).append("\n");
-				}
-
-				Toast.makeText(context, sb.toString(), Toast.LENGTH_LONG).show();
-
-			} catch (Exception e) {
-				Log.e(LOG_TAG, e.getMessage());
-			}
+			Toast.makeText(activity, "Fin prise de vue", Toast.LENGTH_SHORT).show();
+			traitementQrCodes();
 		}
 	}
 
@@ -88,12 +90,28 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 			camera.autoFocus(new AutoFocusCallback() {
 				@Override
 				public void onAutoFocus(boolean success, Camera camera) {
-					Toast.makeText(context, "Debut prise de vue", Toast.LENGTH_SHORT).show();
+					Toast.makeText(activity, "Debut prise de vue", Toast.LENGTH_SHORT).show();
 					cleanWorkingDirectory();
 					isRecording = true;
 					onStart();
 				}
 			});
+		}
+	}
+
+	private void traitementQrCodes() {
+		try {
+			ArrayList<String> qrCodes = QrCodesExtractor.extract(workingDirectory);
+			StringBuffer sb = new StringBuffer();
+
+			for (String qr : qrCodes) {
+				sb.append(qr).append("\n");
+			}
+
+			Toast.makeText(activity, sb.toString(), Toast.LENGTH_LONG).show();
+
+		} catch (Exception e) {
+			Log.e(LOG_TAG, e.getMessage());
 		}
 	}
 
@@ -104,12 +122,6 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 	}
 
 	private void createPicture(byte[] data) {
-
-		if (!workingDirectory.exists() && !workingDirectory.mkdirs()) {
-			Log.d(LOG_TAG, "Can't create directory to save image.");
-			Toast.makeText(context, "Can't create directory to save image.", Toast.LENGTH_LONG).show();
-			return;
-		}
 
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyymmddhhmmss", Locale.getDefault());
 		String date = dateFormat.format(new Date());
@@ -124,7 +136,7 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 			fos.close();
 		} catch (Exception error) {
 			Log.d(LOG_TAG, "File" + pictureFile.getAbsolutePath() + "not saved: " + error.getMessage());
-			Toast.makeText(context, "Image could not be saved.", Toast.LENGTH_LONG).show();
+			Toast.makeText(activity, "Image could not be saved.", Toast.LENGTH_LONG).show();
 		}
 	}
 
@@ -147,6 +159,7 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 		if (camera != null) {
 			camera.stopPreview();
 			camera.release();
+			camera = null;
 		}
 	}
 

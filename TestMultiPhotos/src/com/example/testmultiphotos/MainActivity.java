@@ -11,12 +11,22 @@ public class MainActivity extends Activity {
 
 	private PhotoHelper photoHelper;
 	private boolean isOn = false;
+	private boolean isPreconditionsOK;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		photoHelper = new PhotoHelper(getApplicationContext(), (SurfaceView) findViewById(R.id.surfaceView));
+		photoHelper = new PhotoHelper(this, (SurfaceView) findViewById(R.id.surfaceView));
+		isPreconditionsOK = photoHelper.checkPreconditions();
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		if (isPreconditionsOK) {
+			photoHelper.resume();
+		}
 	}
 
 	@Override
@@ -27,8 +37,10 @@ public class MainActivity extends Activity {
 
 	@Override
 	protected void onPause() {
-		photoHelper.onPause();
 		super.onPause();
+		if (isPreconditionsOK) {
+			photoHelper.onPause();
+		}
 	}
 
 	public void onClick(View view) {
