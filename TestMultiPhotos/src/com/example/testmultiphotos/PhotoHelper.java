@@ -25,6 +25,7 @@ import android.widget.Toast;
 
 public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callback {
 
+	private Object cameraLock = new Object();
 	private Activity activity;
 	private Camera camera;
 	private boolean isRecording = false;
@@ -72,30 +73,32 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 		holder.addCallback(this);
 
 		camera.setDisplayOrientation(90);
-		camera.setPreviewCallback(this);
-		camera.startPreview();
+
+		// onStart();
+
+		// camera.setPreviewCallback(this);
+		// camera.startPreview();
 	}
 
 	public void doStop() {
 		isRecording = false;
-
-		if (camera != null) {
-			Toast.makeText(activity, "Fin prise de vue", Toast.LENGTH_SHORT).show();
-			traitementQrCodes();
-		}
+		Toast.makeText(activity, "Fin prise de vue", Toast.LENGTH_SHORT).show();
+		traitementQrCodes();
 	}
 
 	public void doStart() {
-		if (camera != null) {
-			camera.autoFocus(new AutoFocusCallback() {
-				@Override
-				public void onAutoFocus(boolean success, Camera camera) {
-					Toast.makeText(activity, "Debut prise de vue", Toast.LENGTH_SHORT).show();
-					cleanWorkingDirectory();
-					isRecording = true;
-					onStart();
-				}
-			});
+		synchronized (cameraLock) {
+			if (camera != null) {
+				camera.autoFocus(new AutoFocusCallback() {
+					@Override
+					public void onAutoFocus(boolean success, Camera camera) {
+						Toast.makeText(activity, "Debut prise de vue", Toast.LENGTH_SHORT).show();
+						cleanWorkingDirectory();
+						isRecording = true;
+						onStart();
+					}
+				});
+			}
 		}
 	}
 
@@ -156,20 +159,24 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 	}
 
 	public void onPause() {
-		if (camera != null) {
-			camera.stopPreview();
-			camera.release();
-			camera = null;
+		synchronized (cameraLock) {
+			if (camera != null) {
+				camera.stopPreview();
+				camera.release();
+				camera = null;
+			}
 		}
 	}
 
 	public void onStart() {
-		if (camera != null) {
-			try {
-				camera.setPreviewDisplay(holder);
-				camera.startPreview();
-			} catch (IOException e) {
-				Log.e(LOG_TAG, e.getMessage());
+		synchronized (cameraLock) {
+			if (camera != null) {
+				try {
+					camera.setPreviewDisplay(holder);
+					camera.startPreview();
+				} catch (IOException e) {
+					Log.e(LOG_TAG, e.getMessage());
+				}
 			}
 		}
 	}
