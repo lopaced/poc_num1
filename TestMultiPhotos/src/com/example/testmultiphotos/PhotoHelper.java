@@ -1,8 +1,10 @@
 package com.example.testmultiphotos;
 
 import static android.widget.Toast.LENGTH_LONG;
+import static com.example.testmultiphotos.Constantes.HEIGHT;
 import static com.example.testmultiphotos.Constantes.LOG_TAG;
 import static com.example.testmultiphotos.Constantes.PICTURE_FILE_NAME_PREFIXE;
+import static com.example.testmultiphotos.Constantes.WIDTH;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -64,7 +66,7 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 		Camera.Parameters parameters = camera.getParameters();
 		parameters.setColorEffect(Camera.Parameters.EFFECT_MONO);
 		parameters.setPreviewFormat(ImageFormat.YV12);
-		parameters.setPreviewSize(800, 480);
+		parameters.setPreviewSize(WIDTH, HEIGHT);
 		parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
 
 		camera.setParameters(parameters);
@@ -74,10 +76,10 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 
 		camera.setDisplayOrientation(90);
 
-		// onStart();
+		onStart();
 
-		// camera.setPreviewCallback(this);
-		// camera.startPreview();
+		camera.setPreviewCallback(this);
+		camera.startPreview();
 	}
 
 	public void doStop() {

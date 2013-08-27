@@ -1,5 +1,8 @@
 package com.example.testmultiphotos;
 
+import static com.example.testmultiphotos.Constantes.HEIGHT;
+import static com.example.testmultiphotos.Constantes.WIDTH;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,13 +34,11 @@ public class QrCodesExtractor {
 	}
 
 	private static void extractQRCodes(File file, ArrayList<String> arrayList) throws IOException, NotFoundException {
-		int height = 480;
-		int width = 800;
 
 		ByteArrayOutputStream output = new ByteArrayOutputStream();
 		FileUtils.copyFile(file, output);
 
-		LuminanceSource source = new PlanarYUVLuminanceSource(output.toByteArray(), width, height, 0, 0, width, height, false);
+		LuminanceSource source = new PlanarYUVLuminanceSource(output.toByteArray(), WIDTH, HEIGHT, 0, 0, WIDTH, HEIGHT, false);
 		BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
 		MultipleBarcodeReader reader = new QRCodeMultiReader();
 
