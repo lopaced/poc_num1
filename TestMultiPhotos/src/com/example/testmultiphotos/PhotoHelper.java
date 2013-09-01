@@ -11,9 +11,13 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import android.app.Activity;
 import android.graphics.ImageFormat;
@@ -25,7 +29,8 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.Toast;
 
-public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callback {
+public class PhotoHelper implements Camera.PreviewCallback,
+		SurfaceHolder.Callback {
 
 	private Object cameraLock = new Object();
 	private Activity activity;
@@ -34,6 +39,9 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 	private SurfaceHolder holder;
 	private File workingDirectory;
 	private SurfaceView surfaceView;
+	private BlockingQueue<FrameDto> frames = new ArrayBlockingQueue<FrameDto>(
+			50);
+	private WorkerPool workers;
 
 	public PhotoHelper(Activity context, SurfaceView surfaceView) {
 		this.activity = context;
@@ -45,15 +53,18 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 		int numberOfCameras = Camera.getNumberOfCameras();
 
 		if (numberOfCameras < 1) {
-			Toast.makeText(activity, "Vous n\'avez pas de camera", LENGTH_LONG).show();
+			Toast.makeText(activity, "Vous n\'avez pas de camera", LENGTH_LONG)
+					.show();
 			return false;
 		}
 
-		workingDirectory = new File(Environment.getExternalStorageDirectory(), "testQrScan");
+		workingDirectory = new File(Environment.getExternalStorageDirectory(),
+				"testQrScan");
 
 		if (!workingDirectory.exists() && !workingDirectory.mkdirs()) {
 			Log.d(LOG_TAG, "Can't create directory to save image.");
-			Toast.makeText(activity, "Can't create directory to save image.", Toast.LENGTH_LONG).show();
+			Toast.makeText(activity, "Can't create directory to save image.",
+					Toast.LENGTH_LONG).show();
 			return false;
 		}
 
@@ -85,7 +96,19 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 	public void doStop() {
 		isRecording = false;
 		Toast.makeText(activity, "Fin prise de vue", Toast.LENGTH_SHORT).show();
-		traitementQrCodes();
+		if (workers != null) {
+			Log.d(this.getClass().getName(),"WorkerPool stoping");
+			workers.stop();
+			List<String> qrCodes = workers.getResults();
+			StringBuffer sb = new StringBuffer();
+
+			for (String qr : qrCodes) {
+				sb.append(qr).append("\n");
+			}
+
+			Toast.makeText(activity, sb.toString(), Toast.LENGTH_LONG).show();
+			workers = null;
+		}
 	}
 
 	public void doStart() {
@@ -94,7 +117,8 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 				camera.autoFocus(new AutoFocusCallback() {
 					@Override
 					public void onAutoFocus(boolean success, Camera camera) {
-						Toast.makeText(activity, "Debut prise de vue", Toast.LENGTH_SHORT).show();
+						Toast.makeText(activity, "Debut prise de vue",
+								Toast.LENGTH_SHORT).show();
 						cleanWorkingDirectory();
 						isRecording = true;
 						onStart();
@@ -104,49 +128,25 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 		}
 	}
 
-	private void traitementQrCodes() {
-		try {
-			ArrayList<String> qrCodes = QrCodesExtractor.extract(workingDirectory);
-			StringBuffer sb = new StringBuffer();
-
-			for (String qr : qrCodes) {
-				sb.append(qr).append("\n");
-			}
-
-			Toast.makeText(activity, sb.toString(), Toast.LENGTH_LONG).show();
-
-		} catch (Exception e) {
-			Log.e(LOG_TAG, e.getMessage());
-		}
-	}
-
 	@Override
 	public void onPreviewFrame(byte[] data, Camera camera) {
-		if (isRecording)
-			createPicture(data);
-	}
+		if (isRecording) {
+			// createPicture(data);
+			frames.add(new FrameDto(data));
 
-	private void createPicture(byte[] data) {
+			// Démarrage de l'extraction
+			if (workers == null) {
+				Log.d(this.getClass().getName(),"WorkerPool starting");
+				workers = new WorkerPool(frames);
+				workers.start();
+			}
 
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyymmddhhmmss", Locale.getDefault());
-		String date = dateFormat.format(new Date());
-
-		String photoFile = PICTURE_FILE_NAME_PREFIXE + date + ".jpg";
-
-		File pictureFile = new File(workingDirectory, photoFile);
-
-		try {
-			FileOutputStream fos = new FileOutputStream(pictureFile);
-			fos.write(data);
-			fos.close();
-		} catch (Exception error) {
-			Log.d(LOG_TAG, "File" + pictureFile.getAbsolutePath() + "not saved: " + error.getMessage());
-			Toast.makeText(activity, "Image could not be saved.", Toast.LENGTH_LONG).show();
 		}
 	}
 
 	@Override
-	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+	public void surfaceChanged(SurfaceHolder holder, int format, int width,
+			int height) {
 		onStart();
 	}
 
