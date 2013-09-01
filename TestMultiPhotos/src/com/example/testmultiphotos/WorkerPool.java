@@ -1,9 +1,8 @@
 package com.example.testmultiphotos;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -14,46 +13,51 @@ public class WorkerPool {
 	private static int DEFAULT_SIZE = 2;
 	private int size;
 	private BlockingQueue<FrameDto> frames;
-	private List<String> results;
+	private Set<String> results;
 	private ExecutorService executor;
-	private List<Runnable> threads = new ArrayList<Runnable>();
+	private QRCodeHandler qrCodeHandler;
 
-	public WorkerPool(BlockingQueue<FrameDto> frames) {
-		this(frames, DEFAULT_SIZE);
+	public WorkerPool(BlockingQueue<FrameDto> frames, QRCodeHandler qrCodeHandler) {
+		this(frames, DEFAULT_SIZE, qrCodeHandler);
 	}
 
-	public WorkerPool(BlockingQueue<FrameDto> frames, int size) {
+	public WorkerPool(BlockingQueue<FrameDto> frames, int size, QRCodeHandler qrCodeHandler) {
 		this.size = size;
 		this.frames = frames;
-		results = new ArrayList<String>();
+		this.qrCodeHandler = qrCodeHandler;
+		results = new ConcurrentSkipListSet<String>();
 	}
 
 	public void start() {
-		Log.d(this.getClass().getName(),"WorkerPool START");
+		Log.d(this.getClass().getName(), "WorkerPool START");
 		executor = Executors.newFixedThreadPool(size);
+		results.clear();
 		for (int i = 0; i < size; i++) {
-			Runnable worker = new ExtractWorker(frames, results);
+			Runnable worker = new ExtractWorker(frames, results, qrCodeHandler);
 			executor.execute(worker);
-			threads.add(worker);
 		}
 	}
 
+	/**
+	 * Arrête le pool de workers et l'ensemble des workers. Cette méthode attend
+	 * que les workers soient terminés pour rendre la main à l'appelant.
+	 */
 	public void stop() {
-		Log.d(this.getClass().getName(),"WorkerPool STOP");
-		//Send kill signal to threads
+		Log.d(this.getClass().getName(), "WorkerPool STOP");
+		// Send kill signal to threads
 		for (int i = 0; i < size; i++) {
 			frames.add(new FrameDto(null, ExtractStatusEnum.KILL));
 		}
-		while(!frames.isEmpty()){			
+		while (!frames.isEmpty()) {
 		}
-		Log.d(this.getClass().getName(),"WorkerPool STOP : Frames empty");
+		Log.d(this.getClass().getName(), "WorkerPool STOP : Frames empty");
 		executor.shutdown();
-		while (!executor.isTerminated()) {			
+		while (!executor.isTerminated()) {
 		}
-		Log.d(this.getClass().getName(),"WorkerPool STOP : executor terminated");
+		Log.d(this.getClass().getName(), "WorkerPool STOP : executor terminated");
 	}
-	
-	public List<String> getResults(){
+
+	public Iterable<String> getResults() {
 		return results;
 	}
 
