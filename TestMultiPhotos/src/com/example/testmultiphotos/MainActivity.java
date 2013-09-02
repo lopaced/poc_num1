@@ -80,24 +80,12 @@ public class MainActivity extends Activity implements IMainActivity {
 
   @Override
   public void showLongToast(final String text) {
-    // nécessaire car si appel à Toast dans un autre thread que le UI,
-    // exception...
-    runOnUiThread(new Runnable() {
-      public void run() {
-        Toast.makeText(getApplicationContext(), text, Toast.LENGTH_LONG).show();
-      }
-    });
+    Toast.makeText(getApplicationContext(), text, Toast.LENGTH_LONG).show();
   }
 
   @Override
   public void showShortToast(final String text) {
-    // nécessaire car si appel à Toast dans un autre thread que le UI,
-    // exception...
-    runOnUiThread(new Runnable() {
-      public void run() {
-        Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
   }
 
   @Override

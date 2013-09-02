@@ -7,7 +7,6 @@ import static com.example.testmultiphotos.Constantes.WIDTH;
 import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import android.annotation.TargetApi;
 import android.graphics.ImageFormat;
@@ -21,13 +20,12 @@ import android.view.SurfaceView;
 
 public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callback, QRCodeHandler {
 
-  private Object cameraLock = new Object();
   private IMainActivity activity;
   private Camera camera;
   private boolean isRecording = false;
   private SurfaceHolder holder;
   private SurfaceView surfaceView;
-  private Set<String> results = new ConcurrentSkipListSet<String>();
+  private Set<String> qrCodesFound = new ConcurrentSkipListSet<String>();
 
   public PhotoHelper(IMainActivity activity, SurfaceView surfaceView) {
     this.activity = activity;
@@ -71,14 +69,16 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
     isRecording = false;
     activity.showShortToast("Fin prise de vue");
 
-    Log.d(this.getClass().getName(), "Worker stoping");
-    while (!((ThreadPoolExecutor) ExtractWorker.THREAD_POOL_EXECUTOR).getQueue().isEmpty()) {
+    Log.d(LOG_TAG, "Worker stoping");
+    while (ExtractWorker.isRunning()) {
+      Log.d(LOG_TAG, "waiting...");
     }
-    Log.d(this.getClass().getName(), "Worker finished");
+    Log.d(LOG_TAG, "Worker finished");
 
     StringBuffer sb = new StringBuffer();
+    sb.append(qrCodesFound.size()).append(" QRcodes trouvés :\n");
 
-    for (String qr : results) {
+    for (String qr : qrCodesFound) {
       sb.append(qr).append("\n");
     }
 
@@ -86,24 +86,28 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
   }
 
   public void onBouttonStart() {
-    synchronized (cameraLock) {
-      if (camera != null) {
-        camera.autoFocus(new AutoFocusCallback() {
-          @Override
-          public void onAutoFocus(boolean success, Camera camera) {
-            activity.showShortToast("Debut prise de vue");
-            isRecording = true;
-            startPreview();
-          }
-        });
-      }
+    if (camera != null) {
+      camera.autoFocus(new AutoFocusCallback() {
+        @Override
+        public void onAutoFocus(boolean success, Camera camera) {
+
+          if (!success)
+            onBouttonStart();
+
+          activity.showShortToast("Debut prise de vue");
+          qrCodesFound.clear();
+          isRecording = true;
+          startPreview();
+        }
+      });
     }
   }
 
-  @TargetApi(Build.VERSION_CODES.HONEYCOMB)
   @Override
+  @TargetApi(Build.VERSION_CODES.HONEYCOMB)
   public void onPreviewFrame(byte[] data, Camera camera) {
     if (isRecording) {
+
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
         new ExtractWorker(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, data);
       else {
@@ -128,24 +132,20 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
   }
 
   public void stopPreviewAndCamera() {
-    synchronized (cameraLock) {
-      if (camera != null) {
-        camera.stopPreview();
-        camera.release();
-        camera = null;
-      }
+    if (camera != null) {
+      camera.stopPreview();
+      camera.release();
+      camera = null;
     }
   }
 
   public void startPreview() {
-    synchronized (cameraLock) {
-      if (camera != null) {
-        try {
-          camera.setPreviewDisplay(holder);
-          camera.startPreview();
-        } catch (IOException e) {
-          Log.e(LOG_TAG, e.getMessage());
-        }
+    if (camera != null) {
+      try {
+        camera.setPreviewDisplay(holder);
+        camera.startPreview();
+      } catch (IOException e) {
+        Log.e(LOG_TAG, e.getMessage());
       }
     }
   }
@@ -153,8 +153,9 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
   @Override
   public void onNewQRCodeRead(String qrCode) {
     Log.i(LOG_TAG, "Nouveau QR code " + qrCode);
-    activity.showShortToast(qrCode);
-    activity.bruitNouveauQRCode();
-    results.add(qrCode);
+    if (qrCodesFound.add(qrCode)) {
+      activity.bruitNouveauQRCode();
+      activity.showShortToast(qrCode);
+    }
   }
 }
