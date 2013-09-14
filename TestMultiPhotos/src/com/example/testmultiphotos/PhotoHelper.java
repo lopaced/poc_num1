@@ -79,7 +79,7 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
   public void onBouttonStop() {
 
     isRecording = false;
-    //activity.showShortToast("Fin prise de vue");
+    // activity.showShortToast("Fin prise de vue");
 
     Log.d(LOG_TAG, "Worker stoping");
     ((Activity) activity).runOnUiThread(new Runnable() {
@@ -97,7 +97,8 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
         }
 
         activity.showLongToast(sb.toString());
-      }});    
+      }
+    });
   }
 
   public void onBouttonStart() {
@@ -170,8 +171,8 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
   public void onNewQRCodeRead(String qrCode) {
     Log.i(LOG_TAG, "Nouveau QR code " + qrCode);
     if (qrCodesFound.add(qrCode)) {
-      activity.bruitNouveauQRCode();
-     // activity.showShortToast(qrCode);
+      activity.playSound(SoundTypeEnum.BIP);
+      // activity.showShortToast(qrCode);
     }
   }
 
