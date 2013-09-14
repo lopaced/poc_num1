@@ -43,7 +43,7 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
       return false;
     }
 
-    // Pour sélectionner l'id de la caméra
+    // Pour sï¿½lectionner l'id de la camï¿½ra
     CameraInfo cameraInfo = new CameraInfo();
     for (int i = 0; i < Camera.getNumberOfCameras(); i++) {
       Camera.getCameraInfo(i, cameraInfo);
@@ -62,6 +62,7 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
     parameters.setPreviewFormat(ImageFormat.YV12);
     parameters.setPreviewSize(WIDTH, HEIGHT);
     parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+    parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
     camera.setParameters(parameters);
 
     holder = surfaceView.getHolder();
@@ -78,22 +79,25 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
   public void onBouttonStop() {
 
     isRecording = false;
-    activity.showShortToast("Fin prise de vue");
+    //activity.showShortToast("Fin prise de vue");
 
     Log.d(LOG_TAG, "Worker stoping");
-    while (ExtractWorker.isRunning()) {
-      Log.d(LOG_TAG, "waiting...");
-    }
-    Log.d(LOG_TAG, "Worker finished");
+    ((Activity) activity).runOnUiThread(new Runnable() {
+      public void run() {
+        while (ExtractWorker.isRunning()) {
+          Log.d(LOG_TAG, "waiting...");
+        }
+        Log.d(LOG_TAG, "Worker finished");
 
-    StringBuffer sb = new StringBuffer();
-    sb.append(qrCodesFound.size()).append(" QRcodes trouvÃ©s :\n");
+        StringBuffer sb = new StringBuffer();
+        sb.append(qrCodesFound.size()).append(" QRcodes trouvÃ©s :\n");
 
-    for (String qr : qrCodesFound) {
-      sb.append(qr).append("\n");
-    }
+        for (String qr : qrCodesFound) {
+          sb.append(qr).append("\n");
+        }
 
-    activity.showLongToast(sb.toString());
+        activity.showLongToast(sb.toString());
+      }});    
   }
 
   public void onBouttonStart() {
@@ -167,7 +171,7 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
     Log.i(LOG_TAG, "Nouveau QR code " + qrCode);
     if (qrCodesFound.add(qrCode)) {
       activity.bruitNouveauQRCode();
-      activity.showShortToast(qrCode);
+     // activity.showShortToast(qrCode);
     }
   }
 
