@@ -9,12 +9,15 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.AutoFocusCallback;
+import android.hardware.Camera.CameraInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -26,6 +29,7 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
   private SurfaceHolder holder;
   private SurfaceView surfaceView;
   private Set<String> qrCodesFound = new ConcurrentSkipListSet<String>();
+  private int cameraId = -1;
 
   public PhotoHelper(IMainActivity activity, SurfaceView surfaceView) {
     this.activity = activity;
@@ -39,25 +43,32 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
       return false;
     }
 
+    // Pour sélectionner l'id de la caméra
+    CameraInfo cameraInfo = new CameraInfo();
+    for (int i = 0; i < Camera.getNumberOfCameras(); i++) {
+      Camera.getCameraInfo(i, cameraInfo);
+      if (cameraInfo.facing == CameraInfo.CAMERA_FACING_BACK) {
+        cameraId = 0;
+      }
+    }
+
     return true;
   }
 
   public void resume() {
     camera = Camera.open();
-
     Camera.Parameters parameters = camera.getParameters();
     parameters.setColorEffect(Camera.Parameters.EFFECT_MONO);
     parameters.setPreviewFormat(ImageFormat.YV12);
     parameters.setPreviewSize(WIDTH, HEIGHT);
     parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-
     camera.setParameters(parameters);
 
     holder = surfaceView.getHolder();
     holder.addCallback(this);
 
-    camera.setDisplayOrientation(90);
-
+    // Set orientation of camera
+    setCameraDisplayOrientation();
     startPreview();
 
     camera.setPreviewCallback(this);
@@ -134,6 +145,7 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
   public void stopPreviewAndCamera() {
     if (camera != null) {
       camera.stopPreview();
+      camera.setPreviewCallback(null);
       camera.release();
       camera = null;
     }
@@ -157,5 +169,38 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
       activity.bruitNouveauQRCode();
       activity.showShortToast(qrCode);
     }
+  }
+
+  /**
+   * Oriente correctement la camera, gestion mode portrait et paysage
+   */
+  private void setCameraDisplayOrientation() {
+    CameraInfo info = new CameraInfo();
+    Camera.getCameraInfo(cameraId, info);
+    int rotation = ((Activity) activity).getWindowManager().getDefaultDisplay().getRotation();
+    int degrees = 0;
+    switch (rotation) {
+    case Surface.ROTATION_0:
+      degrees = 0;
+      break;
+    case Surface.ROTATION_90:
+      degrees = 90;
+      break;
+    case Surface.ROTATION_180:
+      degrees = 180;
+      break;
+    case Surface.ROTATION_270:
+      degrees = 270;
+      break;
+    }
+
+    int result;
+    if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+      result = (info.orientation + degrees) % 360;
+      result = (360 - result) % 360; // compensate the mirror
+    } else { // back-facing
+      result = (info.orientation - degrees + 360) % 360;
+    }
+    camera.setDisplayOrientation(result);
   }
 }
