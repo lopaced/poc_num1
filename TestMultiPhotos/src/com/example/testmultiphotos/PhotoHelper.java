@@ -1,8 +1,6 @@
 package com.example.testmultiphotos;
 
-import static com.example.testmultiphotos.Constantes.HEIGHT;
 import static com.example.testmultiphotos.Constantes.LOG_TAG;
-import static com.example.testmultiphotos.Constantes.WIDTH;
 
 import java.io.IOException;
 import java.util.Set;
@@ -14,6 +12,7 @@ import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.AutoFocusCallback;
 import android.hardware.Camera.CameraInfo;
+import android.hardware.Camera.Size;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
@@ -60,7 +59,8 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
     Camera.Parameters parameters = camera.getParameters();
     parameters.setColorEffect(Camera.Parameters.EFFECT_MONO);
     parameters.setPreviewFormat(ImageFormat.YV12);
-    parameters.setPreviewSize(WIDTH, HEIGHT);
+    Size biggerSupportedSize = parameters.getSupportedPreviewSizes().get(0);
+    parameters.setPreviewSize(biggerSupportedSize.width, biggerSupportedSize.height);
     parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
     parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
     camera.setParameters(parameters);
@@ -76,29 +76,17 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
     camera.startPreview();
   }
 
+  @TargetApi(Build.VERSION_CODES.HONEYCOMB)
   public void onBouttonStop() {
-
     isRecording = false;
     // activity.showShortToast("Fin prise de vue");
 
     Log.d(LOG_TAG, "Worker stoping");
-    ((Activity) activity).runOnUiThread(new Runnable() {
-      public void run() {
-        while (ExtractWorker.isRunning()) {
-          Log.d(LOG_TAG, "waiting...");
-        }
-        Log.d(LOG_TAG, "Worker finished");
-
-        StringBuffer sb = new StringBuffer();
-        sb.append(qrCodesFound.size()).append(" QRcodes trouvés :\n");
-
-        for (String qr : qrCodesFound) {
-          sb.append(qr).append("\n");
-        }
-
-        activity.showLongToast(sb.toString());
-      }
-    });
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+      new WaitWorker(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new Void[0]);
+    else {
+      new WaitWorker(this).execute(new Void[0]);
+    }
   }
 
   public void onBouttonStart() {
@@ -207,5 +195,17 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
       result = (info.orientation - degrees + 360) % 360;
     }
     camera.setDisplayOrientation(result);
+  }
+
+  @Override
+  public void onEndQRCodeRead() {
+    StringBuffer sb = new StringBuffer();
+    sb.append(qrCodesFound.size()).append(" QRcodes trouvés :\n");
+
+    for (String qr : qrCodesFound) {
+      sb.append(qr).append("\n");
+    }
+
+    activity.showLongToast(sb.toString());
   }
 }
