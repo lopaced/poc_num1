@@ -47,8 +47,16 @@ public class ExtractWorker extends AsyncTask<byte[], Void, Iterable<String>> {
    * The system calls this to perform work in the UI thread and delivers the result from doInBackground()
    */
   protected void onPostExecute(Iterable<String> results) {
+    int nb = 0;
     for (String result : results) {
+      ++nb;
       qrCodeHandler.onNewQRCodeRead(result);
+      if (nb > 1) {
+        try {
+          Thread.sleep(100);
+        } catch (InterruptedException e) {
+        }
+      }
     }
   }
 

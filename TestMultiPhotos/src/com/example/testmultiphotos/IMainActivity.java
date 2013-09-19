@@ -6,6 +6,6 @@ public interface IMainActivity {
 
   void showShortToast(String text);
 
-  void bruitNouveauQRCode();
+  void playSound(SoundTypeEnum type);
 
 }
