@@ -29,6 +29,7 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
   private SurfaceView surfaceView;
   private Set<String> qrCodesFound = new ConcurrentSkipListSet<String>();
   private int cameraId = -1;
+  private Size previewSize;
 
   public PhotoHelper(IMainActivity activity, SurfaceView surfaceView) {
     this.activity = activity;
@@ -56,11 +57,13 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 
   public void resume() {
     camera = Camera.open();
+
+    previewSize = findBestPreviewSize();
+
     Camera.Parameters parameters = camera.getParameters();
     parameters.setColorEffect(Camera.Parameters.EFFECT_MONO);
     parameters.setPreviewFormat(ImageFormat.YV12);
-    Size biggerSupportedSize = parameters.getSupportedPreviewSizes().get(0);
-    parameters.setPreviewSize(biggerSupportedSize.width, biggerSupportedSize.height);
+    parameters.setPreviewSize(previewSize.width, previewSize.height);
     parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
     parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
     camera.setParameters(parameters);
@@ -113,9 +116,10 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
     if (isRecording) {
 
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
-        new ExtractWorker(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, data);
+        new ExtractWorker(this, previewSize.height, previewSize.width).executeOnExecutor(
+            AsyncTask.THREAD_POOL_EXECUTOR, data);
       else {
-        new ExtractWorker(this).execute(data);
+        new ExtractWorker(this, previewSize.height, previewSize.width).execute(data);
       }
     }
   }
@@ -207,5 +211,25 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
     }
 
     activity.showLongToast(sb.toString());
+  }
+
+  /** @return La taille optimale de la preview */
+  public Size findBestPreviewSize() {
+    Size preferredPreviewSize = camera.getParameters().getPreferredPreviewSizeForVideo();
+
+    if (preferredPreviewSize != null)
+      return preferredPreviewSize;
+
+    int bestProductSize = 0;
+
+    for (Size curentSize : camera.getParameters().getSupportedPreviewSizes()) {
+      int curentProductSize = curentSize.height * curentSize.width;
+      if (curentProductSize > bestProductSize) {
+        bestProductSize = curentProductSize;
+        preferredPreviewSize = curentSize;
+      }
+    }
+
+    return preferredPreviewSize;
   }
 }

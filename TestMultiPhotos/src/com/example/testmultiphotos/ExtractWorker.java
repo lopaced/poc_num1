@@ -1,8 +1,6 @@
 package com.example.testmultiphotos;
 
-import static com.example.testmultiphotos.Constantes.HEIGHT;
 import static com.example.testmultiphotos.Constantes.LOG_TAG;
-import static com.example.testmultiphotos.Constantes.WIDTH;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,10 +21,14 @@ import com.google.zxing.multi.qrcode.QRCodeMultiReader;
 public class ExtractWorker extends AsyncTask<byte[], Void, Iterable<String>> {
 
   private QRCodeHandler qrCodeHandler;
+  int height, width;
 
-  public ExtractWorker(QRCodeHandler qrCodeHandler) {
+  public ExtractWorker(QRCodeHandler qrCodeHandler, int height, int width) {
     super();
     this.qrCodeHandler = qrCodeHandler;
+    this.height = height;
+    this.width = width;
+
   }
 
   public static boolean isRunning() {
@@ -64,7 +66,7 @@ public class ExtractWorker extends AsyncTask<byte[], Void, Iterable<String>> {
 
     Log.d(LOG_TAG, "extractQRCodes START");
 
-    LuminanceSource source = new PlanarYUVLuminanceSource(frame, WIDTH, HEIGHT, 0, 0, WIDTH, HEIGHT, false);
+    LuminanceSource source = new PlanarYUVLuminanceSource(frame, width, height, 0, 0, width, height, false);
     BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
     MultipleBarcodeReader reader = new QRCodeMultiReader();
 

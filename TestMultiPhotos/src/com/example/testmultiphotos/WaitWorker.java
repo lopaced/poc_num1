@@ -6,23 +6,27 @@ import android.util.Log;
 
 public class WaitWorker extends AsyncTask<Void, Void, Void> {
 
-  
   private QRCodeHandler qrCodeHandler;
 
   public WaitWorker(QRCodeHandler qrCodeHandler) {
     super();
     this.qrCodeHandler = qrCodeHandler;
   }
-  
+
   @Override
   protected Void doInBackground(Void... params) {
     while (ExtractWorker.isRunning()) {
-      Log.d(LOG_TAG, "waiting...");
+      try {
+        Log.d(LOG_TAG, "waiting...");
+        Thread.sleep(100);
+      } catch (InterruptedException e) {
+        Log.e(LOG_TAG, e.toString());
+      }
     }
     Log.d(LOG_TAG, "Worker finished");
-    return null;   
+    return null;
   }
-  
+
   @Override
   protected void onPostExecute(Void result) {
     qrCodeHandler.onEndQRCodeRead();
