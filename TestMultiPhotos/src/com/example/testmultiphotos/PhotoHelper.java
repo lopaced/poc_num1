@@ -4,6 +4,8 @@ import static com.example.testmultiphotos.Constantes.LOG_TAG;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import android.annotation.TargetApi;
@@ -30,6 +32,16 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
   private Set<String> qrCodesFound = new ConcurrentSkipListSet<String>();
   private int cameraId = -1;
   private Size previewSize;
+  private long lastFrameProcessing;
+  private BlockingQueue<FrameDto> frames = new ArrayBlockingQueue<FrameDto>(50);
+  private WorkerPool workers;
+
+  // False -> Utilisation de l'implémentation ThreadPool
+  // True -> Utilisation de l'implémentation AsyncTask
+  private static final boolean USING_ASYNC_TASK = false;
+
+  private boolean autoFpsRange = true;
+  private final int incrementFrameIgnoree = 1000 / Constantes.FRAME_PER_SECONDE;
 
   public PhotoHelper(IMainActivity activity, SurfaceView surfaceView) {
     this.activity = activity;
@@ -39,7 +51,7 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
   public boolean checkPreconditions() {
 
     if (Camera.getNumberOfCameras() < 1) {
-      activity.showLongToast("Vous n\'avez pas de camera");
+      activity.showLongToast(R.string.erreur_sans_camera);
       return false;
     }
 
@@ -68,6 +80,14 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
     parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
     camera.setParameters(parameters);
 
+    try {
+      parameters.setPreviewFpsRange(Constantes.FRAME_PER_SECONDE * 1000, Constantes.FRAME_PER_SECONDE * 1000);
+      camera.setParameters(parameters);
+    } catch (RuntimeException e) {
+      // Passsage en mode manuel
+      autoFpsRange = false;
+    }
+
     holder = surfaceView.getHolder();
     holder.addCallback(this);
 
@@ -82,46 +102,53 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
   @TargetApi(Build.VERSION_CODES.HONEYCOMB)
   public void onBouttonStop() {
     isRecording = false;
-    // activity.showShortToast("Fin prise de vue");
+
+    activity.setBoutonStatusToStopping();
 
     Log.d(LOG_TAG, "Worker stoping");
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
-      new WaitWorker(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new Void[0]);
-    else {
-      new WaitWorker(this).execute(new Void[0]);
-    }
+    stopWorker();
   }
 
   public void onBouttonStart() {
-    if (camera != null) {
-      camera.autoFocus(new AutoFocusCallback() {
-        @Override
-        public void onAutoFocus(boolean success, Camera camera) {
-
-          if (!success)
-            onBouttonStart();
-
-          activity.showShortToast("Debut prise de vue");
-          qrCodesFound.clear();
-          isRecording = true;
-          startPreview();
-        }
-      });
+    if (camera == null) {
+      activity.showLongToast(R.string.erreur_initialisation_camera);
+      return;
     }
+
+    activity.setBoutonStatusToStarting();
+
+    camera.autoFocus(new AutoFocusCallback() {
+      @Override
+      public void onAutoFocus(boolean success, Camera camera) {
+
+        if (!success)
+          onBouttonStart();
+
+        activity.showShortToast(R.string.msg_debut_scan);
+        activity.setBoutonStatusToStop();
+        qrCodesFound.clear();
+        isRecording = true;
+        startPreview();
+      }
+    });
   }
 
   @Override
   @TargetApi(Build.VERSION_CODES.HONEYCOMB)
   public void onPreviewFrame(byte[] data, Camera camera) {
-    if (isRecording) {
-
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
-        new ExtractWorker(this, previewSize.height, previewSize.width).executeOnExecutor(
-            AsyncTask.THREAD_POOL_EXECUTOR, data);
-      else {
-        new ExtractWorker(this, previewSize.height, previewSize.width).execute(data);
-      }
+    if (!isRecording) {
+      return;
     }
+
+    long currentTimeMillis = System.currentTimeMillis();
+
+    if (!autoFpsRange && lastFrameProcessing + incrementFrameIgnoree > currentTimeMillis) {
+      Log.d(LOG_TAG, "Frame non traitée...");
+      return;
+    }
+
+    lastFrameProcessing = currentTimeMillis;
+    createWorker(previewSize.height, previewSize.width, data);
   }
 
   @Override
@@ -203,14 +230,28 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 
   @Override
   public void onEndQRCodeRead() {
-    StringBuffer sb = new StringBuffer();
-    sb.append(qrCodesFound.size()).append(" QRcodes trouvés :\n");
+    StringBuffer sb = new StringBuffer("\n");
 
     for (String qr : qrCodesFound) {
       sb.append(qr).append("\n");
     }
 
-    activity.showLongToast(sb.toString());
+    int idMessage;
+
+    switch (qrCodesFound.size()) {
+    case 0:
+      idMessage = R.string.msg_fin_scan_zero;
+      break;
+    case 1:
+      idMessage = R.string.msg_fin_scan_one;
+      break;
+    default:
+      idMessage = R.string.msg_fin_scan_more;
+      break;
+    }
+
+    activity.showLongToast(idMessage, qrCodesFound.size(), sb.toString());
+    activity.setBoutonStatusToStart();
   }
 
   /** @return La taille optimale de la preview */
@@ -231,5 +272,39 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
     }
 
     return preferredPreviewSize;
+  }
+
+  private void createWorker(int height, int width, byte[] data) {
+    if (USING_ASYNC_TASK) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+        new ExtractWorkerAsynTask(this, previewSize.height, previewSize.width).executeOnExecutor(
+            AsyncTask.THREAD_POOL_EXECUTOR, data);
+      } else {
+        new ExtractWorkerAsynTask(this, previewSize.height, previewSize.width).execute(data);
+      }
+    } else {
+      frames.add(new FrameDto(data));
+
+      // Démarrage de l'extraction
+      if (workers == null) {
+        Log.d(this.getClass().getName(), "WorkerPool starting");
+        workers = new WorkerPool(this, frames, height, width);
+        workers.start();
+      }
+    }
+  }
+
+  private void stopWorker() {
+    if (USING_ASYNC_TASK) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+        new WaitWorker(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new Void[0]);
+      else {
+        new WaitWorker(this).execute(new Void[0]);
+      }
+    } else {
+      if (workers != null) {
+        workers.stop();
+      }
+    }
   }
 }

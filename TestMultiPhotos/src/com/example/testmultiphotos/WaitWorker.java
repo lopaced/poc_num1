@@ -15,7 +15,7 @@ public class WaitWorker extends AsyncTask<Void, Void, Void> {
 
   @Override
   protected Void doInBackground(Void... params) {
-    while (ExtractWorker.isRunning()) {
+    while (ExtractWorkerAsynTask.isRunning()) {
       try {
         Log.d(LOG_TAG, "waiting...");
         Thread.sleep(100);

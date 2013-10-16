@@ -4,7 +4,6 @@ import static com.example.testmultiphotos.Constantes.LOG_TAG;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import android.os.AsyncTask;
 import android.util.Log;
@@ -18,12 +17,12 @@ import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.multi.MultipleBarcodeReader;
 import com.google.zxing.multi.qrcode.QRCodeMultiReader;
 
-public class ExtractWorker extends AsyncTask<byte[], Void, Iterable<String>> {
+public class ExtractWorkerAsynTask extends AsyncTask<byte[], Void, Iterable<String>> {
 
   private QRCodeHandler qrCodeHandler;
   int height, width;
 
-  public ExtractWorker(QRCodeHandler qrCodeHandler, int height, int width) {
+  public ExtractWorkerAsynTask(QRCodeHandler qrCodeHandler, int height, int width) {
     super();
     this.qrCodeHandler = qrCodeHandler;
     this.height = height;
@@ -32,7 +31,7 @@ public class ExtractWorker extends AsyncTask<byte[], Void, Iterable<String>> {
   }
 
   public static boolean isRunning() {
-    return !((ThreadPoolExecutor) THREAD_POOL_EXECUTOR).getQueue().isEmpty();
+    return false;// !((ThreadPoolExecutor) THREAD_POOL_EXECUTOR).getQueue().isEmpty();
   }
 
   @Override

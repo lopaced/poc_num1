@@ -12,10 +12,6 @@ public final class R {
     }
     public static final class dimen {
         /**  Default screen margins, per the Android Design guidelines. 
-
-         Customize dimensions originally defined in res/values/dimens.xml (such as
-         screen margins) for sw720dp devices (e.g. 10" tablets) in landscape here.
-    
          */
         public static final int activity_horizontal_margin=0x7f050000;
         public static final int activity_vertical_margin=0x7f050001;
@@ -42,7 +38,17 @@ public final class R {
     public static final class string {
         public static final int action_settings=0x7f060001;
         public static final int app_name=0x7f060000;
+        public static final int btn_start=0x7f060003;
+        public static final int btn_starting=0x7f060004;
+        public static final int btn_stop=0x7f060005;
+        public static final int btn_stopping=0x7f060006;
+        public static final int erreur_initialisation_camera=0x7f060007;
+        public static final int erreur_sans_camera=0x7f060008;
         public static final int hello_world=0x7f060002;
+        public static final int msg_debut_scan=0x7f060009;
+        public static final int msg_fin_scan_more=0x7f06000c;
+        public static final int msg_fin_scan_one=0x7f06000b;
+        public static final int msg_fin_scan_zero=0x7f06000a;
     }
     public static final class style {
         /** 
