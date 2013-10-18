@@ -116,6 +116,7 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
     }
 
     activity.setBoutonStatusToStarting();
+    frames.clear();
 
     camera.autoFocus(new AutoFocusCallback() {
       @Override
@@ -304,6 +305,7 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
     } else {
       if (workers != null) {
         workers.stop();
+        workers = null;
       }
     }
   }

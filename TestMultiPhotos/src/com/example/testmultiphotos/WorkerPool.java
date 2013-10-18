@@ -10,7 +10,7 @@ import android.util.Log;
 
 public class WorkerPool {
 
-  private static int DEFAULT_SIZE = 2;
+  private static int DEFAULT_SIZE = 1;
   private int size;
   private BlockingQueue<FrameDto> frames;
   private ExecutorService executor;

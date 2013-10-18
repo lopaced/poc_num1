@@ -33,8 +33,8 @@ public class ExtractWorkerThread implements Runnable {
     while (true) {
       Log.d(this.getClass().getName(), "Consumer " + Thread.currentThread().getName() + " START");
       try {
-        FrameDto frame = framesQueue.take();
         Thread.sleep(new Random().nextInt(100));
+        FrameDto frame = framesQueue.take();
         if (frame.getStatus() == ExtractStatusEnum.KILL) {
           Log.d(this.getClass().getName(), "Consumer " + Thread.currentThread().getName() + " KILL");
           break;
