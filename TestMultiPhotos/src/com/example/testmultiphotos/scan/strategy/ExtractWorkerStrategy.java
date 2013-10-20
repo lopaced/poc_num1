@@ -9,4 +9,6 @@ public interface ExtractWorkerStrategy {
   void stopWorker(QRCodeHandler handler);
 
   void init();
+
+  String getStrategyName();
 }

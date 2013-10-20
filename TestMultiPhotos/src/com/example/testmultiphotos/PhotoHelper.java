@@ -45,6 +45,10 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
     // this.extractionStrategy = new ThreadExtractWorkerStrategy();
   }
 
+  public void setExtractStrategy(ExtractWorkerStrategy strategy) {
+    extractionStrategy = strategy;
+  }
+
   public boolean checkPreconditions() {
 
     if (Camera.getNumberOfCameras() < 1) {

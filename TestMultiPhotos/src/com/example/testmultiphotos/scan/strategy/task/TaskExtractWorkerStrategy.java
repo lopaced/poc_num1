@@ -11,7 +11,7 @@ import com.example.testmultiphotos.scan.strategy.ExtractWorkerStrategy;
 public class TaskExtractWorkerStrategy implements ExtractWorkerStrategy {
 
   public TaskExtractWorkerStrategy() {
-    Log.d(LOG_TAG, "Utilisation du TaskExtractWorkerStrategy");
+    Log.d(LOG_TAG, "Utilisation de " + getStrategyName());
   }
 
   @Override
@@ -34,6 +34,11 @@ public class TaskExtractWorkerStrategy implements ExtractWorkerStrategy {
 
   @Override
   public void init() {
+  }
+
+  @Override
+  public String getStrategyName() {
+    return "stratégie par async task";
   }
 
 }

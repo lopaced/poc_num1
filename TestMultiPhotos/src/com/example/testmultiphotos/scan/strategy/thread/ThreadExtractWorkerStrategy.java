@@ -13,7 +13,7 @@ import com.example.testmultiphotos.scan.strategy.ExtractWorkerStrategy;
 public class ThreadExtractWorkerStrategy implements ExtractWorkerStrategy {
 
   public ThreadExtractWorkerStrategy() {
-    Log.d(LOG_TAG, "Utilisation du ThreadExtractWorkerStrategy");
+    Log.d(LOG_TAG, "Utilisation de " + getStrategyName());
   }
 
   private BlockingQueue<FrameDto> frames = new ArrayBlockingQueue<FrameDto>(50);
@@ -43,6 +43,11 @@ public class ThreadExtractWorkerStrategy implements ExtractWorkerStrategy {
   @Override
   public void init() {
 
+  }
+
+  @Override
+  public String getStrategyName() {
+    return "stratégie par thread";
   }
 
 }

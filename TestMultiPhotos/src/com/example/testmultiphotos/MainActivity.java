@@ -5,10 +5,15 @@ import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+
+import com.example.testmultiphotos.scan.strategy.ExtractWorkerStrategy;
+import com.example.testmultiphotos.scan.strategy.task.TaskExtractWorkerStrategy;
+import com.example.testmultiphotos.scan.strategy.thread.ThreadExtractWorkerStrategy;
 
 public class MainActivity extends Activity implements IMainActivity {
 
@@ -143,4 +148,24 @@ public class MainActivity extends Activity implements IMainActivity {
     btn.setText(R.string.btn_stopping);
   }
 
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+
+    final ExtractWorkerStrategy strategie;
+
+    switch (item.getItemId()) {
+    case R.id.selection_strategie_task:
+      strategie = new TaskExtractWorkerStrategy();
+      break;
+    case R.id.selection_strategie_thread:
+      strategie = new ThreadExtractWorkerStrategy();
+      break;
+    default:
+      return super.onOptionsItemSelected(item);
+    }
+
+    showShortToast(R.string.msg_changement_strategie_scan, strategie.getStrategyName());
+    photoHelper.setExtractStrategy(strategie);
+    return true;
+  }
 }

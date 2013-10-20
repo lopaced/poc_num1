@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="selection_strategie_thread">Strategie thread</string>
+    <string name="selection_strategie_task">Strategie asynctask</string>
+
+</resources>

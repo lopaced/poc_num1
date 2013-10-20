@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="erreur_initialisation_camera">Erreur d\'initialisation de la camera</string>
+    <string name="erreur_sans_camera">Vous n\'avez pas de camera</string>
+    <string name="msg_debut_scan">Début de la prise de vue</string>
+    <string name="msg_fin_scan_zero">Fin de la prise de vue, aucun code trouvé, désolé.</string>
+    <string name="msg_fin_scan_one">Fin de la prise de vue, 1 code trouvé : %2$s </string>
+    <string name="msg_fin_scan_more">Fin de la prise de vue, %1$d codes trouvés : %2$s </string>
+    <string name="msg_changement_strategie_scan">Utilisation de la %1$s</string>
+
+</resources>

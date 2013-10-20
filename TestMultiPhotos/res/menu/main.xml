@@ -1,9 +1,12 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:showAsAction="never"
-        android:title="@string/action_settings"/>
+        android:id="@+id/selection_strategie_thread"
+        android:title="@string/selection_strategie_thread">
+    </item>
+    <item
+        android:id="@+id/selection_strategie_task"
+        android:title="@string/selection_strategie_task">
+    </item>
 
 </menu>
