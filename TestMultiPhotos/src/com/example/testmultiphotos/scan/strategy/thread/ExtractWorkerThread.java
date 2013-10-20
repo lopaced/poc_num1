@@ -1,10 +1,11 @@
-package com.example.testmultiphotos;
+package com.example.testmultiphotos.scan.strategy.thread;
 
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 
 import android.util.Log;
 
+import com.example.testmultiphotos.QRCodeHandler;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.NotFoundException;

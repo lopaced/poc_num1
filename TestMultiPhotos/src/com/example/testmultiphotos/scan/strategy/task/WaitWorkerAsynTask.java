@@ -1,14 +1,17 @@
-package com.example.testmultiphotos;
+package com.example.testmultiphotos.scan.strategy.task;
 
 import static com.example.testmultiphotos.Constantes.LOG_TAG;
+
+import com.example.testmultiphotos.QRCodeHandler;
+
 import android.os.AsyncTask;
 import android.util.Log;
 
-public class WaitWorker extends AsyncTask<Void, Void, Void> {
+public class WaitWorkerAsynTask extends AsyncTask<Void, Void, Void> {
 
   private QRCodeHandler qrCodeHandler;
 
-  public WaitWorker(QRCodeHandler qrCodeHandler) {
+  public WaitWorkerAsynTask(QRCodeHandler qrCodeHandler) {
     super();
     this.qrCodeHandler = qrCodeHandler;
   }

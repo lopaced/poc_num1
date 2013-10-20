@@ -4,8 +4,6 @@ import static com.example.testmultiphotos.Constantes.LOG_TAG;
 
 import java.io.IOException;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import android.annotation.TargetApi;
@@ -15,12 +13,14 @@ import android.hardware.Camera;
 import android.hardware.Camera.AutoFocusCallback;
 import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.Size;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
+import com.example.testmultiphotos.scan.strategy.ExtractWorkerStrategy;
+import com.example.testmultiphotos.scan.strategy.task.TaskExtractWorkerStrategy;
 
 public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callback, QRCodeHandler {
 
@@ -33,12 +33,7 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
   private int cameraId = -1;
   private Size previewSize;
   private long lastFrameProcessing;
-  private BlockingQueue<FrameDto> frames = new ArrayBlockingQueue<FrameDto>(50);
-  private WorkerPool workers;
-
-  // False -> Utilisation de l'implémentation ThreadPool
-  // True -> Utilisation de l'implémentation AsyncTask
-  private static final boolean USING_ASYNC_TASK = false;
+  private ExtractWorkerStrategy extractionStrategy;
 
   private boolean autoFpsRange = true;
   private final int incrementFrameIgnoree = 1000 / Constantes.FRAME_PER_SECONDE;
@@ -46,6 +41,8 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
   public PhotoHelper(IMainActivity activity, SurfaceView surfaceView) {
     this.activity = activity;
     this.surfaceView = surfaceView;
+    this.extractionStrategy = new TaskExtractWorkerStrategy();
+    // this.extractionStrategy = new ThreadExtractWorkerStrategy();
   }
 
   public boolean checkPreconditions() {
@@ -106,7 +103,7 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
     activity.setBoutonStatusToStopping();
 
     Log.d(LOG_TAG, "Worker stoping");
-    stopWorker();
+    extractionStrategy.stopWorker(this);
   }
 
   public void onBouttonStart() {
@@ -116,7 +113,7 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
     }
 
     activity.setBoutonStatusToStarting();
-    frames.clear();
+    extractionStrategy.init();
 
     camera.autoFocus(new AutoFocusCallback() {
       @Override
@@ -149,7 +146,7 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
     }
 
     lastFrameProcessing = currentTimeMillis;
-    createWorker(previewSize.height, previewSize.width, data);
+    extractionStrategy.createWorker(this, previewSize.height, previewSize.width, data);
   }
 
   @Override
@@ -189,10 +186,9 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 
   @Override
   public void onNewQRCodeRead(String qrCode) {
-    Log.i(LOG_TAG, "Nouveau QR code " + qrCode);
     if (qrCodesFound.add(qrCode)) {
+      Log.d(LOG_TAG, "Nouveau QR code " + qrCode);
       activity.playSound(SoundTypeEnum.BIP);
-      // activity.showShortToast(qrCode);
     }
   }
 
@@ -275,38 +271,4 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
     return preferredPreviewSize;
   }
 
-  private void createWorker(int height, int width, byte[] data) {
-    if (USING_ASYNC_TASK) {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-        new ExtractWorkerAsynTask(this, previewSize.height, previewSize.width).executeOnExecutor(
-            AsyncTask.THREAD_POOL_EXECUTOR, data);
-      } else {
-        new ExtractWorkerAsynTask(this, previewSize.height, previewSize.width).execute(data);
-      }
-    } else {
-      frames.add(new FrameDto(data));
-
-      // Démarrage de l'extraction
-      if (workers == null) {
-        Log.d(this.getClass().getName(), "WorkerPool starting");
-        workers = new WorkerPool(this, frames, height, width);
-        workers.start();
-      }
-    }
-  }
-
-  private void stopWorker() {
-    if (USING_ASYNC_TASK) {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
-        new WaitWorker(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new Void[0]);
-      else {
-        new WaitWorker(this).execute(new Void[0]);
-      }
-    } else {
-      if (workers != null) {
-        workers.stop();
-        workers = null;
-      }
-    }
-  }
 }
