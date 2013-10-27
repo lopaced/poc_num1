@@ -1,4 +1,4 @@
-package com.example.testmultiphotos.accueil;
+package com.example.testmultiphotos.client.accueil;
 
 import com.example.testmultiphotos.plugins.PluginInfo;
 

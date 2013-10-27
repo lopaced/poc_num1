@@ -1,4 +1,4 @@
-package com.example.testmultiphotos.scan;
+package com.example.testmultiphotos.service.scan;
 
 public interface QRCodeHandler {
 

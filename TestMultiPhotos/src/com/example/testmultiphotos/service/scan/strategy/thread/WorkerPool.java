@@ -1,4 +1,4 @@
-package com.example.testmultiphotos.scan.strategy.thread;
+package com.example.testmultiphotos.service.scan.strategy.thread;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,7 +6,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.example.testmultiphotos.scan.QRCodeHandler;
+import com.example.testmultiphotos.service.scan.QRCodeHandler;
 
 import android.util.Log;
 

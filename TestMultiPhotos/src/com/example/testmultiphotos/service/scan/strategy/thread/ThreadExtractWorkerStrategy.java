@@ -1,4 +1,4 @@
-package com.example.testmultiphotos.scan.strategy.thread;
+package com.example.testmultiphotos.service.scan.strategy.thread;
 
 import static com.example.testmultiphotos.Constantes.LOG_TAG;
 
@@ -7,8 +7,8 @@ import java.util.concurrent.BlockingQueue;
 
 import android.util.Log;
 
-import com.example.testmultiphotos.scan.QRCodeHandler;
-import com.example.testmultiphotos.scan.strategy.ExtractWorkerStrategy;
+import com.example.testmultiphotos.service.scan.QRCodeHandler;
+import com.example.testmultiphotos.service.scan.strategy.ExtractWorkerStrategy;
 
 public class ThreadExtractWorkerStrategy implements ExtractWorkerStrategy {
 

@@ -1,4 +1,4 @@
-package com.example.testmultiphotos.scan.strategy.task;
+package com.example.testmultiphotos.service.scan.strategy.task;
 
 import static com.example.testmultiphotos.Constantes.LOG_TAG;
 
@@ -8,7 +8,7 @@ import java.util.List;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.example.testmultiphotos.scan.QRCodeHandler;
+import com.example.testmultiphotos.service.scan.QRCodeHandler;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.NotFoundException;

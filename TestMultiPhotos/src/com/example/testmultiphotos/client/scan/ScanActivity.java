@@ -1,4 +1,4 @@
-package com.example.testmultiphotos.scan;
+package com.example.testmultiphotos.client.scan;
 
 import android.app.Activity;
 import android.media.AudioManager;
@@ -9,12 +9,13 @@ import android.view.MenuItem;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 
 import com.example.testmultiphotos.R;
-import com.example.testmultiphotos.scan.strategy.ExtractWorkerStrategy;
-import com.example.testmultiphotos.scan.strategy.task.TaskExtractWorkerStrategy;
-import com.example.testmultiphotos.scan.strategy.thread.ThreadExtractWorkerStrategy;
+import com.example.testmultiphotos.ToastHelper;
+import com.example.testmultiphotos.service.scan.PhotoHelper;
+import com.example.testmultiphotos.service.scan.strategy.ExtractWorkerStrategy;
+import com.example.testmultiphotos.service.scan.strategy.task.TaskExtractWorkerStrategy;
+import com.example.testmultiphotos.service.scan.strategy.thread.ThreadExtractWorkerStrategy;
 
 public class ScanActivity extends Activity implements IScanActivity {
 
@@ -75,28 +76,6 @@ public class ScanActivity extends Activity implements IScanActivity {
     }
 
     isOn = !isOn;
-  }
-
-  @Override
-  public void showLongToast(final String text) {
-    Toast.makeText(getApplicationContext(), text, Toast.LENGTH_LONG).show();
-  }
-
-  @Override
-  public void showLongToast(final int textId, Object... param) {
-    String msg = getString(textId, param);
-    showLongToast(msg);
-  }
-
-  @Override
-  public void showShortToast(final String text) {
-    Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
-  }
-
-  @Override
-  public void showShortToast(final int textId, Object... param) {
-    String msg = getString(textId, param);
-    showShortToast(msg);
   }
 
   @Override
@@ -165,8 +144,9 @@ public class ScanActivity extends Activity implements IScanActivity {
       return super.onOptionsItemSelected(item);
     }
 
-    showShortToast(R.string.msg_changement_strategie_scan, strategie.getStrategyName());
+    ToastHelper.getInstance(this).showLongToast(R.string.msg_changement_strategie_scan, strategie.getStrategyName());
     photoHelper.setExtractStrategy(strategie);
+
     return true;
   }
 }

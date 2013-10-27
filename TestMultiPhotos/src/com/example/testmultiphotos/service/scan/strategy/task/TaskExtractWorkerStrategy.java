@@ -1,12 +1,12 @@
-package com.example.testmultiphotos.scan.strategy.task;
+package com.example.testmultiphotos.service.scan.strategy.task;
 
 import static com.example.testmultiphotos.Constantes.LOG_TAG;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
 
-import com.example.testmultiphotos.scan.QRCodeHandler;
-import com.example.testmultiphotos.scan.strategy.ExtractWorkerStrategy;
+import com.example.testmultiphotos.service.scan.QRCodeHandler;
+import com.example.testmultiphotos.service.scan.strategy.ExtractWorkerStrategy;
 
 public class TaskExtractWorkerStrategy implements ExtractWorkerStrategy {
 

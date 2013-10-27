@@ -1,4 +1,4 @@
-package com.example.testmultiphotos.accueil;
+package com.example.testmultiphotos.client.accueil;
 
 import android.content.Context;
 import android.view.View;

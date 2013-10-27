@@ -1,4 +1,4 @@
-package com.example.testmultiphotos.accueil;
+package com.example.testmultiphotos.client.accueil;
 
 import static com.example.testmultiphotos.Constantes.INTENT_PLUGIN_INFO;
 import android.app.Activity;
@@ -7,9 +7,9 @@ import android.os.Bundle;
 import android.widget.TableLayout;
 
 import com.example.testmultiphotos.R;
+import com.example.testmultiphotos.client.scan.ScanActivity;
 import com.example.testmultiphotos.plugins.PluginInfo;
 import com.example.testmultiphotos.plugins.PluginsFactory;
-import com.example.testmultiphotos.scan.ScanActivity;
 
 public class AccueilActivity extends Activity implements PluginButtonClickHandler {
 

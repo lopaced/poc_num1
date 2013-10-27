@@ -1,4 +1,4 @@
-package com.example.testmultiphotos.scan;
+package com.example.testmultiphotos.client.scan;
 
 public enum SoundTypeEnum {
   START, STOP, BIP

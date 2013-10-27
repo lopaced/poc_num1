@@ -1,4 +1,4 @@
-package com.example.testmultiphotos.scan;
+package com.example.testmultiphotos.service.scan;
 
 import static com.example.testmultiphotos.Constantes.LOG_TAG;
 
@@ -21,8 +21,11 @@ import android.view.SurfaceView;
 
 import com.example.testmultiphotos.Constantes;
 import com.example.testmultiphotos.R;
-import com.example.testmultiphotos.scan.strategy.ExtractWorkerStrategy;
-import com.example.testmultiphotos.scan.strategy.task.TaskExtractWorkerStrategy;
+import com.example.testmultiphotos.ToastHelper;
+import com.example.testmultiphotos.client.scan.IScanActivity;
+import com.example.testmultiphotos.client.scan.SoundTypeEnum;
+import com.example.testmultiphotos.service.scan.strategy.ExtractWorkerStrategy;
+import com.example.testmultiphotos.service.scan.strategy.task.TaskExtractWorkerStrategy;
 
 public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callback, QRCodeHandler {
 
@@ -39,12 +42,13 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 
   private boolean autoFpsRange = true;
   private final int incrementFrameIgnoree = 1000 / Constantes.FRAME_PER_SECONDE;
+  private ToastHelper toastHelper;
 
   public PhotoHelper(IScanActivity activity, SurfaceView surfaceView) {
     this.activity = activity;
     this.surfaceView = surfaceView;
     this.extractionStrategy = new TaskExtractWorkerStrategy();
-    // this.extractionStrategy = new ThreadExtractWorkerStrategy();
+    this.toastHelper = ToastHelper.getInstance(activity.getApplicationContext());
   }
 
   public void setExtractStrategy(ExtractWorkerStrategy strategy) {
@@ -54,7 +58,7 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
   public boolean checkPreconditions() {
 
     if (Camera.getNumberOfCameras() < 1) {
-      activity.showLongToast(R.string.erreur_sans_camera);
+      toastHelper.showLongToast(R.string.erreur_sans_camera);
       return false;
     }
 
@@ -114,7 +118,7 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
 
   public void onBouttonStart() {
     if (camera == null) {
-      activity.showLongToast(R.string.erreur_initialisation_camera);
+      toastHelper.showLongToast(R.string.erreur_initialisation_camera);
       return;
     }
 
@@ -128,7 +132,7 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
         if (!success)
           onBouttonStart();
 
-        activity.showShortToast(R.string.msg_debut_scan);
+        toastHelper.showShortToast(R.string.msg_debut_scan);
         activity.setBoutonStatusToStop();
         qrCodesFound.clear();
         isRecording = true;
@@ -253,7 +257,7 @@ public class PhotoHelper implements Camera.PreviewCallback, SurfaceHolder.Callba
       break;
     }
 
-    activity.showLongToast(idMessage, qrCodesFound.size(), sb.toString());
+    toastHelper.showLongToast(idMessage, qrCodesFound.size(), sb.toString());
     activity.setBoutonStatusToStart();
   }
 
