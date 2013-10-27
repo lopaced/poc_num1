@@ -7,7 +7,7 @@ import java.util.concurrent.BlockingQueue;
 
 import android.util.Log;
 
-import com.example.testmultiphotos.QRCodeHandler;
+import com.example.testmultiphotos.scan.QRCodeHandler;
 import com.example.testmultiphotos.scan.strategy.ExtractWorkerStrategy;
 
 public class ThreadExtractWorkerStrategy implements ExtractWorkerStrategy {

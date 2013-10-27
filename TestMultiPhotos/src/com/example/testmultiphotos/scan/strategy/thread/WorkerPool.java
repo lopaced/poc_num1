@@ -6,7 +6,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.example.testmultiphotos.QRCodeHandler;
+import com.example.testmultiphotos.scan.QRCodeHandler;
 
 import android.util.Log;
 

@@ -5,7 +5,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
 
-import com.example.testmultiphotos.QRCodeHandler;
+import com.example.testmultiphotos.scan.QRCodeHandler;
 import com.example.testmultiphotos.scan.strategy.ExtractWorkerStrategy;
 
 public class TaskExtractWorkerStrategy implements ExtractWorkerStrategy {

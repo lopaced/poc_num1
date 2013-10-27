@@ -1,6 +1,6 @@
 package com.example.testmultiphotos.scan.strategy;
 
-import com.example.testmultiphotos.QRCodeHandler;
+import com.example.testmultiphotos.scan.QRCodeHandler;
 
 public interface ExtractWorkerStrategy {
 

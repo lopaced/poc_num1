@@ -5,7 +5,7 @@ import java.util.concurrent.BlockingQueue;
 
 import android.util.Log;
 
-import com.example.testmultiphotos.QRCodeHandler;
+import com.example.testmultiphotos.scan.QRCodeHandler;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.NotFoundException;

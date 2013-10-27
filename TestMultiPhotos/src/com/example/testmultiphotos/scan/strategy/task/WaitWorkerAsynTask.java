@@ -2,7 +2,7 @@ package com.example.testmultiphotos.scan.strategy.task;
 
 import static com.example.testmultiphotos.Constantes.LOG_TAG;
 
-import com.example.testmultiphotos.QRCodeHandler;
+import com.example.testmultiphotos.scan.QRCodeHandler;
 
 import android.os.AsyncTask;
 import android.util.Log;
