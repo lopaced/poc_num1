@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-
-    <string name="btn_start">Start</string>
-    <string name="btn_starting">Starting&#8230;</string>
-    <string name="btn_stop">Stop</string>
-    <string name="btn_stopping">Stopping&#8230;</string>
-
-</resources>

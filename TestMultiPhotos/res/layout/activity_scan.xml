@@ -7,19 +7,20 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context=".MainActivity" >
+    tools:context=".ScanActivity" >
 
+    <SurfaceView
+        android:id="@+id/surfaceView"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="90" />
 
     <Button
         android:id="@+id/btnStopStart"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:onClick="onClick"
-        android:text="Start" />
-
-    <SurfaceView
-        android:id="@+id/surfaceView"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
+        android:text="@string/btn_start"
+        android:layout_weight="10" />
 
 </LinearLayout>

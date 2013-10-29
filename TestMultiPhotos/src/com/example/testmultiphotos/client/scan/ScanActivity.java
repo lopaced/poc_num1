@@ -133,16 +133,12 @@ public class ScanActivity extends Activity implements IScanActivity {
 
     final ExtractWorkerStrategy strategie;
 
-    switch (item.getItemId()) {
-    case R.id.selection_strategie_task:
+    if (item.getItemId() == R.id.selection_strategie_task)
       strategie = new TaskExtractWorkerStrategy();
-      break;
-    case R.id.selection_strategie_thread:
+    else if (item.getItemId() == R.id.selection_strategie_thread)
       strategie = new ThreadExtractWorkerStrategy();
-      break;
-    default:
+    else
       return super.onOptionsItemSelected(item);
-    }
 
     ToastHelper.getInstance(this).showLongToast(R.string.msg_changement_strategie_scan, strategie.getStrategyName());
     photoHelper.setExtractStrategy(strategie);

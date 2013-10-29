@@ -1,5 +1,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/pluginsTable2"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -9,10 +10,15 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".AccueilActivity" >
 
-    <TableLayout
-        android:id="@+id/pluginsTable"
+    <it.gmariotti.cardslib.library.view.CardGridView
+        android:id="@+id/carddemo"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
-    </TableLayout>
+        android:layout_height="match_parent"
+        android:columnWidth="190dp"
+        android:gravity="center"
+        android:horizontalSpacing="2dp"
+        android:numColumns="2"
+        android:stretchMode="columnWidth"
+        android:verticalSpacing="2dp" />
 
 </LinearLayout>
