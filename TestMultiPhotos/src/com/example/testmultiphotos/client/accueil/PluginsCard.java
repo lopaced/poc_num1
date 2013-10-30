@@ -18,6 +18,8 @@ public class PluginsCard extends Card implements Card.OnCardClickListener {
     super(context);
     this.plugin = plugin;
     this.clickHandler = clickHandler;
+
+    setOnClickListener(this);
   }
 
   @Override
